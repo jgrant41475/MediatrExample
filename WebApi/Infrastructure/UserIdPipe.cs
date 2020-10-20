@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Services;
+using Services.Models;
 
 namespace WebApi.Infrastructure
 {
@@ -28,7 +29,14 @@ namespace WebApi.Infrastructure
                 br.UserId = "fakeUserId";
             }
 
-            return await next();
+            var result = await next();
+
+            if (result is Response<Car> carResponse)
+            {
+                carResponse.Data.Name += " Checked";
+            }
+            
+            return result;
         }
     }
 }
