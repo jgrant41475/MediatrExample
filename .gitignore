@@ -1,0 +1,14 @@
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+/.idea/.idea.MediatrExample/.idea/aws.xml
+/.idea/.idea.MediatrExample/.idea/codeStyles/codeStyleConfig.xml
+/.idea/.idea.MediatrExample/.idea/contentModel.xml
+/.idea/.idea.MediatrExample/.idea/encodings.xml
+/.idea/.idea.MediatrExample/.idea/indexLayout.xml
+/.idea/.idea.MediatrExample/.idea/modules.xml
+/.idea/.idea.MediatrExample/.idea/projectSettingsUpdater.xml
+/.idea/.idea.MediatrExample/.idea/vcs.xml
+/.idea/.idea.MediatrExample/.idea/workspace.xml
