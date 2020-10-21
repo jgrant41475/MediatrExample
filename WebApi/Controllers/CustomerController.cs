@@ -24,16 +24,12 @@ namespace WebApi.Controllers
         [Route("")]
         [Route("list")]
         [HttpGet]
-        public async Task<IEnumerable<Customer>> ListCustomers()
-        {
-            return await _mediator.Send(new ListCustomersQuery());
-        }
+        public async Task<IEnumerable<Customer>> ListCustomers() =>
+            await _mediator.Send(new ListCustomersQuery());
 
         [Route("create")]
         [HttpPost]
-        public async Task<Guid> CreateCustomer([FromBody] CreateCustomerCommand command)
-        {
-            return await _mediator.Send(command);
-        }
+        public async Task<Guid> CreateCustomer([FromBody] CreateCustomerCommand command) =>
+            await _mediator.Send(command);
     }
 }
