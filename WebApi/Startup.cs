@@ -7,12 +7,14 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Services.Cars.Commands;
 using Services.Cars.Queries;
+using Services.Data;
 using WebApi.Infrastructure;
 
 namespace WebApi
@@ -31,7 +33,19 @@ namespace WebApi
         {
             services.AddHttpContextAccessor();
 
-            services.AddScoped(typeof(IPipelineBehavior<,>), typeof(UserIdPipe<,>));
+            //services.AddScoped(typeof(IPipelineBehavior<,>), typeof(UserIdPipe<,>));
+
+            services.AddDbContext<PetShopContext>(options =>
+            {
+                var connectionString = Environment.GetEnvironmentVariable("PetStoreConnectionString");
+                if (string.IsNullOrEmpty(connectionString))
+                {
+                    throw new Exception("Invalid connection string!");
+                }
+
+                options.UseSqlServer(connectionString);
+            });
+            
             services.AddMediatR(typeof(GetAllCarsQuery).Assembly);
             services.AddMediatR(typeof(CreateCarCommand).Assembly);
             
