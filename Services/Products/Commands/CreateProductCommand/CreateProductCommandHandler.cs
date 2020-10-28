@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Services.Data;
 using Services.Models;
+using Services.Validators;
 
 namespace Services.Products.Commands.CreateProductCommand
 {
@@ -27,8 +28,17 @@ namespace Services.Products.Commands.CreateProductCommand
                 IsAnimal = request.IsAnimal,
             };
 
-            var doesProductExist = _context.Products.FirstOrDefault(x => x.Name.Equals(newProduct.Name)) != null;
+            var doesProductExist = 
+                _context.Products.FirstOrDefault(x => x.Name.Equals(newProduct.Name)) != null;
             if (doesProductExist)
+            {
+                return await Task.FromResult(Guid.Empty);
+            }
+            
+            var productValidator = new ProductValidator();
+            var productValidationResult = await productValidator.ValidateAsync(newProduct, cancellationToken);
+
+            if (!productValidationResult.IsValid)
             {
                 return await Task.FromResult(Guid.Empty);
             }

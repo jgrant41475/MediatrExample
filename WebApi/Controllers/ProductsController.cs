@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MediatR;
@@ -13,6 +12,7 @@ using Services.Products.Queries.ListAnimalsQuery;
 namespace WebApi.Controllers
 {
     [ApiController]
+    [Route("[controller]")]
     [Route("product")]
     public class ProductsController : Controller
     {

@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApi", "WebApi\WebApi.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Services", "Services\Services.csproj", "{CDF552AA-FCA5-47EA-BB82-AA51636F9CD8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediatrExample.Tests", "MediatrExample.Tests\MediatrExample.Tests.csproj", "{9584176A-DB5B-4735-8D88-453EC7B10572}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{CDF552AA-FCA5-47EA-BB82-AA51636F9CD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CDF552AA-FCA5-47EA-BB82-AA51636F9CD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CDF552AA-FCA5-47EA-BB82-AA51636F9CD8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9584176A-DB5B-4735-8D88-453EC7B10572}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9584176A-DB5B-4735-8D88-453EC7B10572}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9584176A-DB5B-4735-8D88-453EC7B10572}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9584176A-DB5B-4735-8D88-453EC7B10572}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

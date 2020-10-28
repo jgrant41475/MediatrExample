@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Services.Data;
 using Services.Models;
+using Services.Validators;
 
 namespace Services.Customers.Commands.CreateCustomerCommand
 {
@@ -32,6 +33,14 @@ namespace Services.Customers.Commands.CreateCustomerCommand
                 x.LastName.Equals(newCustomer.LastName)) != null;
 
             if (doesCustomerExist)
+            {
+                return await Task.FromResult(Guid.Empty);
+            }
+            
+            var customerValidator = new CustomerValidator();
+            var customerValidationResult = await customerValidator.ValidateAsync(newCustomer, cancellationToken);
+
+            if (!customerValidationResult.IsValid)
             {
                 return await Task.FromResult(Guid.Empty);
             }

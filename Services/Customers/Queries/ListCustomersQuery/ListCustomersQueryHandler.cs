@@ -6,7 +6,7 @@ using MediatR;
 using Services.Data;
 using Services.Models;
 
-namespace Services.Customers.Queries
+namespace Services.Customers.Queries.ListCustomersQuery
 {
     public class ListCustomersQueryHandler : IRequestHandler<ListCustomersQuery, IEnumerable<Customer>>
     {
