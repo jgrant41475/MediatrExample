@@ -90,5 +90,24 @@ namespace MediatrExample.Tests
             Assert.Equal(0, mockPetShopContext.Products.Count());
             Assert.Equal(Guid.Empty, newProductId);
         }
+
+        [Fact]
+        public async void CreateProductCommand_NegativePrice_DoesNotCreateProduct()
+        {
+            // Arrange
+            await using var mockPetShopContext = GenerateMockDbContext();
+
+            var mockProduct = _fixture.Build<CreateProductCommand>()
+                .With(p => p.Price, -10.00M)
+                .Create();
+
+            // Act
+            var mockHandler = new CreateProductCommandHandler(mockPetShopContext);
+            var newProductId = await mockHandler.Handle(mockProduct, CancellationToken.None);
+
+            // Assert
+            Assert.Equal(0, mockPetShopContext.Products.Count());
+            Assert.Equal(Guid.Empty, newProductId);
+        }
     }
 }
