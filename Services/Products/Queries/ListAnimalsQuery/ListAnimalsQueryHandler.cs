@@ -16,7 +16,7 @@ namespace Services.Products.Queries.ListAnimalsQuery
         {
             _context = context;
         }
-        
+
         public async Task<IEnumerable<Product>> Handle(ListAnimalsQuery request, CancellationToken cancellationToken)
         {
             var allAnimals = _context.Products.Where(x => x.IsAnimal).ToList();

@@ -18,9 +18,9 @@ namespace Services.Products.Queries.GetProductByIdQuery
         
         public async Task<Product> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
         {
-            var product = _context.Products.FirstOrDefault(x => x.Id.Equals(request.Id));
+            var product = await _context.Products.FindAsync(request.Id);
 
-            return await Task.FromResult(product);
+            return product;
         }
     }
 }

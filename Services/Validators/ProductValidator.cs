@@ -7,6 +7,7 @@ namespace Services.Validators
     {
         public ProductValidator()
         {
+            RuleFor(p => p.Id).NotNull().NotEmpty();
             RuleFor(p => p.Name).NotNull().NotEmpty();
             RuleFor(p => p.Description).NotNull().NotEmpty();
             RuleFor(p => p.Price).GreaterThanOrEqualTo(0);

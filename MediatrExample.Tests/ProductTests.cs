@@ -14,19 +14,17 @@ namespace MediatrExample.Tests
     public class ProductTests
     {
         private readonly IFixture _fixture;
+        private readonly PetShopContext _petShopContext;
 
         public ProductTests()
         {
             _fixture = new Fixture();
-        }
-
-        private static PetShopContext GenerateMockDbContext()
-        {
+            
             var options = new DbContextOptionsBuilder<PetShopContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
-            
-            return new PetShopContext(options);
+
+            _petShopContext = new PetShopContext(options);
         }
 
         [Fact]
@@ -35,15 +33,13 @@ namespace MediatrExample.Tests
             const int numberOfProductsToCreate = 5;
 
             // Arrange
-            await using var mockPetShopContext = GenerateMockDbContext();
-
             var listOfProducts = _fixture.Build<Product>().CreateMany(numberOfProductsToCreate);
 
-            await mockPetShopContext.Products.AddRangeAsync(listOfProducts);
-            await mockPetShopContext.SaveChangesAsync();
+            await _petShopContext.Products.AddRangeAsync(listOfProducts);
+            await _petShopContext.SaveChangesAsync();
 
             // Act
-            var mockHandler = new ListAllProductsQueryHandler(mockPetShopContext);
+            var mockHandler = new ListAllProductsQueryHandler(_petShopContext);
 
             var mockHandlerResult = 
                 await mockHandler.Handle(new ListAllProductsQuery(), CancellationToken.None);
@@ -56,16 +52,14 @@ namespace MediatrExample.Tests
         public async void CreateProductCommand_CreatesProduct()
         {
             // Arrange
-            await using var mockPetShopContext = GenerateMockDbContext();
-
             var mockProduct = _fixture.Build<CreateProductCommand>().Create();
 
             // Act
-            var createProductCommand = new CreateProductCommandHandler(mockPetShopContext);
+            var createProductCommand = new CreateProductCommandHandler(_petShopContext);
             var newProductId = await createProductCommand.Handle(mockProduct, CancellationToken.None);
 
             // Assert
-            var numberOfProducts = mockPetShopContext.Products.Count();
+            var numberOfProducts = _petShopContext.Products.Count();
 
             Assert.Equal(1, numberOfProducts);
             Assert.NotEqual(Guid.Empty, newProductId);
@@ -75,19 +69,17 @@ namespace MediatrExample.Tests
         public async void CreateProductCommand_EmptyName_DoesNotCreateProduct()
         {
             // Arrange
-            await using var mockPetShopContext = GenerateMockDbContext();
-
             var mockProduct = _fixture.Build<CreateProductCommand>()
                 .With(p => p.Name, string.Empty)
                 .Create();
 
             // Act
-            var mockHandler = new CreateProductCommandHandler(mockPetShopContext);
+            var mockHandler = new CreateProductCommandHandler(_petShopContext);
 
             var newProductId = await mockHandler.Handle(mockProduct, CancellationToken.None);
 
             // Assert
-            Assert.Equal(0, mockPetShopContext.Products.Count());
+            Assert.Equal(0, _petShopContext.Products.Count());
             Assert.Equal(Guid.Empty, newProductId);
         }
 
@@ -95,18 +87,16 @@ namespace MediatrExample.Tests
         public async void CreateProductCommand_NegativePrice_DoesNotCreateProduct()
         {
             // Arrange
-            await using var mockPetShopContext = GenerateMockDbContext();
-
             var mockProduct = _fixture.Build<CreateProductCommand>()
                 .With(p => p.Price, -10.00M)
                 .Create();
 
             // Act
-            var mockHandler = new CreateProductCommandHandler(mockPetShopContext);
+            var mockHandler = new CreateProductCommandHandler(_petShopContext);
             var newProductId = await mockHandler.Handle(mockProduct, CancellationToken.None);
 
             // Assert
-            Assert.Equal(0, mockPetShopContext.Products.Count());
+            Assert.Equal(0, _petShopContext.Products.Count());
             Assert.Equal(Guid.Empty, newProductId);
         }
     }

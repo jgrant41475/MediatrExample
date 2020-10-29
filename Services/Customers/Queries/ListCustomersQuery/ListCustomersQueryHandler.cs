@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
@@ -19,7 +18,9 @@ namespace Services.Customers.Queries.ListCustomersQuery
         
         public async Task<IEnumerable<Customer>> Handle(ListCustomersQuery request, CancellationToken cancellationToken)
         {
-            return _context.Customers.ToList();
+            var allCustomers = _context.Customers;
+            
+            return await Task.FromResult(allCustomers);
         }
     }
 }

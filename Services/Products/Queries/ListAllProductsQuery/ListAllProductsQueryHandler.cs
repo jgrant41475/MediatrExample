@@ -20,7 +20,7 @@ namespace Services.Products.Queries.ListAllProductsQuery
         
         public async Task<IEnumerable<Product>> Handle(ListAllProductsQuery request, CancellationToken cancellationToken)
         {
-            return _petShopContext.Products.ToList();
+            return await Task.FromResult(_petShopContext.Products);
         }
     }
 }

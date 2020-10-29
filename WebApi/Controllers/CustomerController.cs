@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Services.Customers.Commands.CreateCustomerCommand;
-using Services.Customers.Queries;
 using Services.Customers.Queries.ListCustomersQuery;
 using Services.Models;
 

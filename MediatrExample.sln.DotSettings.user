@@ -3,5 +3,8 @@
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;xUnit::9584176A-DB5B-4735-8D88-453EC7B10572::.NETCoreApp,Version=v3.1::MediatrExample.Tests.CustomersTests&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::9584176A-DB5B-4735-8D88-453EC7B10572::.NETCoreApp,Version=v3.1::MediatrExample.Tests.ProductTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::9584176A-DB5B-4735-8D88-453EC7B10572::.NETCoreApp,Version=v3.1::MediatrExample.Tests.ProductOrdersTests.CreateProductOrderCommand_CreatesProductOrder&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::9584176A-DB5B-4735-8D88-453EC7B10572::.NETCoreApp,Version=v3.1::MediatrExample.Tests.ProductOrdersTests.ListProductOrdersQuery_ListsAllProductOrders&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::9584176A-DB5B-4735-8D88-453EC7B10572::.NETCoreApp,Version=v3.1::MediatrExample.Tests.ProductOrdersTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

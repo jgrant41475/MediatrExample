@@ -14,19 +14,17 @@ namespace MediatrExample.Tests
     public class CustomersTests
     {
         private readonly IFixture _fixture;
+        private readonly PetShopContext _petShopContext;
 
         public CustomersTests()
         {
             _fixture = new Fixture();
-        }
-
-        private static PetShopContext GenerateMockDbContext()
-        {
+            
             var options = new DbContextOptionsBuilder<PetShopContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
 
-            return new PetShopContext(options);
+            _petShopContext = new PetShopContext(options);
         }
 
         [Fact]
@@ -35,15 +33,13 @@ namespace MediatrExample.Tests
             const int numberOfCustomersToCreate = 5;
 
             // Arrange
-            await using var mockPetShopContext = GenerateMockDbContext();
-
             var listOfCustomers = _fixture.Build<Customer>().CreateMany(numberOfCustomersToCreate);
 
-            await mockPetShopContext.Customers.AddRangeAsync(listOfCustomers);
-            await mockPetShopContext.SaveChangesAsync();
+            await _petShopContext.Customers.AddRangeAsync(listOfCustomers);
+            await _petShopContext.SaveChangesAsync();
 
             // Act
-            var mockHandler = new ListCustomersQueryHandler(mockPetShopContext);
+            var mockHandler = new ListCustomersQueryHandler(_petShopContext);
 
             var mockHandlerResult = await mockHandler.Handle(new ListCustomersQuery(), CancellationToken.None);
 
@@ -55,16 +51,14 @@ namespace MediatrExample.Tests
         public async void CreateCustomerCommand_CreatesACustomer()
         {
             // Arrange
-            await using var mockPetShopContext = GenerateMockDbContext();
-
             var mockCustomer = _fixture.Build<CreateCustomerCommand>().Create();
 
             // Act
-            var createCustomerCommandHandler = new CreateCustomerCommandHandler(mockPetShopContext);
+            var createCustomerCommandHandler = new CreateCustomerCommandHandler(_petShopContext);
             var newCustomerId = await createCustomerCommandHandler.Handle(mockCustomer, CancellationToken.None);
 
             // Assert
-            var numberOfCustomers = mockPetShopContext.Customers.Count();
+            var numberOfCustomers = _petShopContext.Customers.Count();
 
             Assert.Equal(1, numberOfCustomers);
             Assert.NotEqual(Guid.Empty, newCustomerId);
@@ -74,8 +68,6 @@ namespace MediatrExample.Tests
         public async void CreateCustomerCommand_EmptyName_DoesNotCreateCustomer()
         {
             // Arrange
-            await using var mockPetShopContext = GenerateMockDbContext();
-
             var mockCustomerEmptyFirstName = _fixture.Build<CreateCustomerCommand>()
                 .With(p => p.FirstName, string.Empty)
                 .Create();
@@ -85,7 +77,7 @@ namespace MediatrExample.Tests
                 .Create();
 
             // Act
-            var createCustomerCommandHandler = new CreateCustomerCommandHandler(mockPetShopContext);
+            var createCustomerCommandHandler = new CreateCustomerCommandHandler(_petShopContext);
 
             var newCustomerId1 = 
                 await createCustomerCommandHandler.Handle(mockCustomerEmptyFirstName, CancellationToken.None);
@@ -93,7 +85,7 @@ namespace MediatrExample.Tests
                 await createCustomerCommandHandler.Handle(mockCustomerEmptyLastName, CancellationToken.None);
 
             // Assert
-            var numberOfCustomers = mockPetShopContext.Customers.Count();
+            var numberOfCustomers = _petShopContext.Customers.Count();
 
             Assert.Equal(0, numberOfCustomers);
             Assert.Equal(Guid.Empty, newCustomerId1);

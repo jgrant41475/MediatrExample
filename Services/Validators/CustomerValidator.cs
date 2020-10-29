@@ -7,6 +7,7 @@ namespace Services.Validators
     {
         public CustomerValidator()
         {
+            RuleFor(c => c.Id).NotNull().NotEmpty();
             RuleFor(c => c.FirstName).NotNull().NotEmpty();
             RuleFor(c => c.LastName).NotNull().NotEmpty();
             RuleFor(c => c.Address).NotNull().NotEmpty();

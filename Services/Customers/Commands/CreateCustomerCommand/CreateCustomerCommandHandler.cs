@@ -36,7 +36,9 @@ namespace Services.Customers.Commands.CreateCustomerCommand
             {
                 return await Task.FromResult(Guid.Empty);
             }
-            
+
+            await _context.Customers.AddAsync(newCustomer, cancellationToken);
+
             var customerValidator = new CustomerValidator();
             var customerValidationResult = await customerValidator.ValidateAsync(newCustomer, cancellationToken);
 
@@ -45,7 +47,6 @@ namespace Services.Customers.Commands.CreateCustomerCommand
                 return await Task.FromResult(Guid.Empty);
             }
 
-            await _context.Customers.AddAsync(newCustomer, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
             return await Task.FromResult(newCustomer.Id);

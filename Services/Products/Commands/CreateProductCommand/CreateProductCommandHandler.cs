@@ -34,7 +34,9 @@ namespace Services.Products.Commands.CreateProductCommand
             {
                 return await Task.FromResult(Guid.Empty);
             }
-            
+
+            await _context.Products.AddAsync(newProduct, cancellationToken);
+
             var productValidator = new ProductValidator();
             var productValidationResult = await productValidator.ValidateAsync(newProduct, cancellationToken);
 
@@ -43,7 +45,6 @@ namespace Services.Products.Commands.CreateProductCommand
                 return await Task.FromResult(Guid.Empty);
             }
 
-            await _context.Products.AddAsync(newProduct, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
             return await Task.FromResult(newProduct.Id);
