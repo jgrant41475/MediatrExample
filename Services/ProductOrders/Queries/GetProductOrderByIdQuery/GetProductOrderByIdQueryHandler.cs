@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +21,7 @@ namespace Services.ProductOrders.Queries.GetProductOrderByIdQuery
             var productOrder =
                 await _context.ProductOrders
                     .Include(p => p.Product)
-                    .Include(p => p.Order)
+                    .Include(p => p.Order.Customer)
                     .FirstOrDefaultAsync(p => request.Id.Equals(p.Id), cancellationToken: cancellationToken);
 
             return productOrder;
