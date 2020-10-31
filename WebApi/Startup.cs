@@ -13,6 +13,8 @@ namespace WebApi
 {
     public class Startup
     {
+        private const string PetShopOrigins = "_PetShopOrigins";
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -23,6 +25,17 @@ namespace WebApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                options.AddPolicy(name: PetShopOrigins,
+                    builder =>
+                    {
+                        builder.WithOrigins("http://localhost:4200")
+                            .AllowAnyHeader()
+                            .AllowAnyMethod();
+                    });
+            });
+            
             services.AddHttpContextAccessor();
 
             services.AddDbContext<PetShopContext>(options =>
@@ -49,6 +62,8 @@ namespace WebApi
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseCors(PetShopOrigins);
+            
             app.UseHttpsRedirection();
 
             app.UseRouting();
