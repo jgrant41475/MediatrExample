@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Services.Customers.Commands.CreateCustomerCommand;
+using Services.Customers.Commands.DeleteCustomerCommand;
+using Services.Customers.Commands.UpdateCustomerInfoCommand;
 using Services.Customers.Queries.ListCustomersQuery;
 using Services.Models;
 
@@ -31,5 +33,20 @@ namespace WebApi.Controllers
         [HttpPost]
         public async Task<Guid> CreateCustomer([FromBody] CreateCustomerCommand command) =>
             await _mediator.Send(command);
+
+        [Route("{customerId}/update")]
+        [HttpPut]
+        public async Task<Customer> UpdateCustomer([FromRoute] Guid customerId,
+            [FromBody] UpdateCustomerInfoCommand request)
+        {
+            request.Id = customerId;
+
+            return await _mediator.Send(request);
+        }
+
+        [Route("{customerId}/delete")]
+        [HttpDelete]
+        public async Task<bool> DeleteCustomer([FromRoute] Guid customerId) =>
+            await _mediator.Send(new DeleteCustomerCommand{ Id = customerId});
     }
 }

@@ -11,6 +11,7 @@ namespace Services.Validators
             RuleFor(c => c.FirstName).NotNull().NotEmpty();
             RuleFor(c => c.LastName).NotNull().NotEmpty();
             RuleFor(c => c.Address).NotNull().NotEmpty();
+            RuleFor(c => c.CreateDateUtc).NotNull().NotEmpty();
         }
     }
 }

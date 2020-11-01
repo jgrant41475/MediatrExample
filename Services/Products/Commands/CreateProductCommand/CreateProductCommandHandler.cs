@@ -26,6 +26,8 @@ namespace Services.Products.Commands.CreateProductCommand
                 Description = request.Description,
                 Price = request.Price,
                 IsAnimal = request.IsAnimal,
+                CreateDateUtc = DateTime.UtcNow,
+                DeletedDateUtc = null,
             };
 
             var doesProductExist = 

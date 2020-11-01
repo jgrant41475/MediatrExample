@@ -18,10 +18,13 @@ namespace Services.Models
         public string LastName { get; set; }
 
         public string Address { get; set; }
+        public DateTime CreateDateUtc { get; set; }
 
-        #nullable enable
+#nullable enable
         public string? Phone { get; set; }
         public string? Email { get; set; }
-        #nullable disable
+
+        public DateTime? DeletedDateUtc { get; set; }
+#nullable disable
     }
 }

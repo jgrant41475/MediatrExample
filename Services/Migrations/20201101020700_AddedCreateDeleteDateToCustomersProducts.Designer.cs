@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Services.Data;
 
 namespace Services.Migrations
 {
     [DbContext(typeof(PetShopContext))]
-    partial class PetShopContextModelSnapshot : ModelSnapshot
+    [Migration("20201101020700_AddedCreateDeleteDateToCustomersProducts")]
+    partial class AddedCreateDeleteDateToCustomersProducts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,7 +33,7 @@ namespace Services.Migrations
                     b.Property<DateTime>("CreateDateUtc")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("DeletedDateUtc")
+                    b.Property<DateTime>("DeletedDateUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
@@ -83,7 +85,7 @@ namespace Services.Migrations
                     b.Property<DateTime>("CreateDateUtc")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("DeletedDateUtc")
+                    b.Property<DateTime>("DeletedDateUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")

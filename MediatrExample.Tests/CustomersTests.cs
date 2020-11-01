@@ -4,6 +4,7 @@ using System.Threading;
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
 using Services.Customers.Commands.CreateCustomerCommand;
+using Services.Customers.Commands.DeleteCustomerCommand;
 using Services.Customers.Commands.UpdateCustomerInfoCommand;
 using Services.Customers.Queries.ListCustomersQuery;
 using Services.Data;
@@ -20,7 +21,7 @@ namespace MediatrExample.Tests
         public CustomersTests()
         {
             _fixture = new Fixture();
-            
+
             var options = new DbContextOptionsBuilder<PetShopContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
@@ -34,7 +35,9 @@ namespace MediatrExample.Tests
             const int numberOfCustomersToCreate = 5;
 
             // Arrange
-            var listOfCustomers = _fixture.Build<Customer>().CreateMany(numberOfCustomersToCreate);
+            var listOfCustomers = _fixture.Build<Customer>()
+                .Without(p => p.DeletedDateUtc)
+                .CreateMany(numberOfCustomersToCreate);
 
             await _petShopContext.Customers.AddRangeAsync(listOfCustomers);
             await _petShopContext.SaveChangesAsync();
@@ -80,7 +83,7 @@ namespace MediatrExample.Tests
             // Act
             var createCustomerCommandHandler = new CreateCustomerCommandHandler(_petShopContext);
 
-            var newCustomerId1 = 
+            var newCustomerId1 =
                 await createCustomerCommandHandler.Handle(mockCustomerEmptyFirstName, CancellationToken.None);
             var newCustomerId2 =
                 await createCustomerCommandHandler.Handle(mockCustomerEmptyLastName, CancellationToken.None);
@@ -105,20 +108,44 @@ namespace MediatrExample.Tests
                 .With(c => c.Id, mockCustomer.Id)
                 .Without(c => c.FirstName)
                 .Create();
-            
+
             var mockHandler = new UpdateCustomerInfoCommandHandler(_petShopContext);
             var result = await mockHandler.Handle(updatedCustomer, CancellationToken.None);
 
             // Assert
             mockCustomer = await _petShopContext.Customers.FindAsync(mockCustomer.Id);
-            
+
             Assert.Equal(mockCustomer.Id, result.Id);
             Assert.Equal(mockCustomer.FirstName, result.FirstName);
             Assert.Equal(mockCustomer.LastName, result.LastName);
             Assert.Equal(mockCustomer.Address, result.Address);
             Assert.Equal(mockCustomer.Email, result.Email);
             Assert.Equal(mockCustomer.Phone, result.Phone);
+        }
 
+        [Fact]
+        public async void DeleteCustomerCommand_DeletesCustomer()
+        {
+            // Arrange
+            var mockCustomer = _fixture.Build<Customer>()
+                .Without(p => p.DeletedDateUtc)
+                .Create();
+
+            await _petShopContext.Customers.AddAsync(mockCustomer, CancellationToken.None);
+            await _petShopContext.SaveChangesAsync(CancellationToken.None);
+
+            // Act
+            var mockHandler = new DeleteCustomerCommandHandler(_petShopContext);
+            var result = await mockHandler.Handle(
+                new DeleteCustomerCommand {Id = mockCustomer.Id}, CancellationToken.None);
+
+            // Assert
+            var customersCount = _petShopContext.Customers.Count(c => c.DeletedDateUtc == null);
+            var deletedCustomer = await _petShopContext.Customers.FindAsync(mockCustomer.Id);
+
+            Assert.True(result);
+            Assert.Equal(0, customersCount);
+            Assert.NotNull(deletedCustomer.DeletedDateUtc);
         }
     }
 }

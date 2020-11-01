@@ -19,7 +19,7 @@ namespace Services.Products.Queries.ListAnimalsQuery
 
         public async Task<IEnumerable<Product>> Handle(ListAnimalsQuery request, CancellationToken cancellationToken)
         {
-            var allAnimals = _context.Products.Where(x => x.IsAnimal).ToList();
+            var allAnimals = _context.Products.Where(x => x.IsAnimal && x.DeletedDateUtc == null).ToList();
 
             return await Task.FromResult(allAnimals);
         }

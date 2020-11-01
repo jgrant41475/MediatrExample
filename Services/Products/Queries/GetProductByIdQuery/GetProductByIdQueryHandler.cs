@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Services.Data;
 using Services.Models;
 
@@ -15,10 +16,11 @@ namespace Services.Products.Queries.GetProductByIdQuery
         {
             _context = context;
         }
-        
+
         public async Task<Product> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
         {
-            var product = await _context.Products.FindAsync(request.Id);
+            var product = await _context.Products.FirstOrDefaultAsync(
+                r => request.Id.Equals(r.Id) && r.DeletedDateUtc == null, cancellationToken);
 
             return product;
         }

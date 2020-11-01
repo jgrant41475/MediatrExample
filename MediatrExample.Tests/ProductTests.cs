@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Services.Data;
 using Services.Models;
 using Services.Products.Commands.CreateProductCommand;
+using Services.Products.Commands.DeleteProductCommand;
 using Services.Products.Commands.UpdateProductInfoCommand;
 using Services.Products.Queries.ListAllProductsQuery;
 using Xunit;
@@ -34,7 +35,9 @@ namespace MediatrExample.Tests
             const int numberOfProductsToCreate = 5;
 
             // Arrange
-            var listOfProducts = _fixture.Build<Product>().CreateMany(numberOfProductsToCreate);
+            var listOfProducts = _fixture.Build<Product>()
+                .Without(p => p.DeletedDateUtc)
+                .CreateMany(numberOfProductsToCreate);
 
             await _petShopContext.Products.AddRangeAsync(listOfProducts);
             await _petShopContext.SaveChangesAsync();
@@ -125,6 +128,31 @@ namespace MediatrExample.Tests
             Assert.Equal(mockProduct.Description, result.Description);
             Assert.Equal(mockProduct.Price, result.Price);
             Assert.Equal(mockProduct.IsAnimal, result.IsAnimal);
+        }
+        
+        [Fact]
+        public async void DeleteProductCommand_DeletesProduct()
+        {
+            // Arrange
+            var mockProduct = _fixture.Build<Product>()
+                .Without(p => p.DeletedDateUtc)
+                .Create();
+
+            await _petShopContext.Products.AddAsync(mockProduct, CancellationToken.None);
+            await _petShopContext.SaveChangesAsync(CancellationToken.None);
+
+            // Act
+            var mockHandler = new DeleteProductCommandHandler(_petShopContext);
+            var result = await mockHandler.Handle(
+                new DeleteProductCommand{Id = mockProduct.Id}, CancellationToken.None);
+
+            // Assert
+            var productsCount = _petShopContext.Products.Count(c => c.DeletedDateUtc == null);
+            var deletedProduct = await _petShopContext.Products.FindAsync(mockProduct.Id);
+
+            Assert.True(result);
+            Assert.Equal(0, productsCount);
+            Assert.NotNull(deletedProduct.DeletedDateUtc);
         }
     }
 }

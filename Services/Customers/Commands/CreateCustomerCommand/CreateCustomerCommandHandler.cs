@@ -26,6 +26,8 @@ namespace Services.Customers.Commands.CreateCustomerCommand
                 LastName = request.LastName,
                 Address = request.Address,
                 Email = request.Email,
+                CreateDateUtc = DateTime.UtcNow,
+                DeletedDateUtc = null,
             };
 
             var doesCustomerExist = _context.Customers.FirstOrDefault(x =>

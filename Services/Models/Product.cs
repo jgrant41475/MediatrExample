@@ -8,16 +8,22 @@ namespace Services.Models
     {
         public Guid Id { get; set; }
 
-        [Required]
-        public string Name { get; set; }
+        [Required] public string Name { get; set; }
 
-        [MaxLength(1024)]
-        public string Description { get; set; }
+        [MaxLength(1024)] public string Description { get; set; }
 
         [Column(TypeName = "decimal(18, 2)")]
         [Range(0.0, 1000.0)]
         public decimal Price { get; set; }
 
         public bool IsAnimal { get; set; }
+
+        public DateTime CreateDateUtc { get; set; }
+
+#nullable enable
+
+        public DateTime? DeletedDateUtc { get; set; }
+
+#nullable disable
     }
 }

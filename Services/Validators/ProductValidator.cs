@@ -11,6 +11,7 @@ namespace Services.Validators
             RuleFor(p => p.Name).NotNull().NotEmpty();
             RuleFor(p => p.Description).NotNull().NotEmpty();
             RuleFor(p => p.Price).GreaterThanOrEqualTo(0);
+            RuleFor(p => p.CreateDateUtc).NotNull().NotEmpty();
         }
     }
 }

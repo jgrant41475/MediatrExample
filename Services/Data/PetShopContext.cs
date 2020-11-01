@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Services.Models;
 
 namespace Services.Data
@@ -13,6 +12,6 @@ namespace Services.Data
 
         public PetShopContext(DbContextOptions<PetShopContext> options)
             : base(options)
-        { }
+        {}
     }
 }

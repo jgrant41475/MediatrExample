@@ -17,10 +17,12 @@ namespace Services.Products.Queries.ListAllProductsQuery
         {
             _petShopContext = petShopContext;
         }
-        
+
         public async Task<IEnumerable<Product>> Handle(ListAllProductsQuery request, CancellationToken cancellationToken)
         {
-            return await Task.FromResult(_petShopContext.Products);
+            var products = _petShopContext.Products.Where(x => x.DeletedDateUtc == null);
+
+            return await Task.FromResult(products);
         }
     }
 }
