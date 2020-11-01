@@ -1,7 +1,7 @@
 ﻿using System;
 using MediatR;
 
-namespace Services.ProductOrders.Commands.CreateProductOrder
+namespace Services.ProductOrders.Commands.CreateProductOrderQuery
 {
     public class CreateProductOrderCommand : IRequest<Guid>
     {

@@ -15,7 +15,7 @@ namespace Services.Products.Commands.DeleteProductCommand
         {
             _context = context;
         }
-        
+
         public async Task<bool> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
         {
             var product = await _context.Products.FirstOrDefaultAsync(

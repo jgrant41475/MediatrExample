@@ -13,5 +13,13 @@ namespace Services.Models
 
         public Guid OrderId { get; set; }
         public virtual Order Order { get; set; }
+
+        public DateTime CreateDateUtc { get; set; }
+
+#nullable enable
+
+        public DateTime? DeletedDateUtc { get; set; }
+
+#nullable disable
     }
 }

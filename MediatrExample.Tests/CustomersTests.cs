@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using Services.Customers.Commands.CreateCustomerCommand;
 using Services.Customers.Commands.DeleteCustomerCommand;
 using Services.Customers.Commands.UpdateCustomerInfoCommand;
+using Services.Customers.Queries.GetCustomerByIdQuery;
 using Services.Customers.Queries.ListCustomersQuery;
 using Services.Data;
-using Services.Models;
 using Xunit;
 
 namespace MediatrExample.Tests
@@ -35,20 +35,40 @@ namespace MediatrExample.Tests
             const int numberOfCustomersToCreate = 5;
 
             // Arrange
-            var listOfCustomers = _fixture.Build<Customer>()
-                .Without(p => p.DeletedDateUtc)
+            var createCustomers = _fixture.Build<CreateCustomerCommand>()
                 .CreateMany(numberOfCustomersToCreate);
-
-            await _petShopContext.Customers.AddRangeAsync(listOfCustomers);
-            await _petShopContext.SaveChangesAsync();
+            
+            var createCustomerCommandHandler = new CreateCustomerCommandHandler(_petShopContext);
+            foreach (var customer in createCustomers)
+            {
+                await createCustomerCommandHandler.Handle(customer, CancellationToken.None);
+            }
 
             // Act
             var mockHandler = new ListCustomersQueryHandler(_petShopContext);
-
-            var mockHandlerResult = await mockHandler.Handle(new ListCustomersQuery(), CancellationToken.None);
+            var mockHandlerResult = 
+                await mockHandler.Handle(new ListCustomersQuery(), CancellationToken.None);
 
             // Assert
             Assert.Equal(numberOfCustomersToCreate, mockHandlerResult.Count());
+        }
+
+        [Fact]
+        public async void GetCustomerByIdQuery_GetsCustomer()
+        {
+            // Arrange
+            var createCustomer = _fixture.Build<CreateCustomerCommand>().Create();
+            var customerId =
+                await new CreateCustomerCommandHandler(_petShopContext).Handle(createCustomer, CancellationToken.None);
+
+            // Act
+            var mockHandler = new GetCustomerByIdQueryHandler(_petShopContext);
+            var customer = 
+                await mockHandler.Handle(new GetCustomerByIdQuery {Id = customerId}, CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(customer);
+            Assert.Equal(customerId, customer.Id);
         }
 
         [Fact]
@@ -100,12 +120,13 @@ namespace MediatrExample.Tests
         public async void UpdateCustomerInfoCommand_UpdatesCustomerInfo()
         {
             // Arrange
-            var mockCustomer = _fixture.Build<Customer>().Create();
-            await _petShopContext.Customers.AddAsync(mockCustomer, CancellationToken.None);
+            var createCustomer = _fixture.Build<CreateCustomerCommand>().Create();
+            var customerId =
+                await new CreateCustomerCommandHandler(_petShopContext).Handle(createCustomer, CancellationToken.None);
 
             // Act
             var updatedCustomer = _fixture.Build<UpdateCustomerInfoCommand>()
-                .With(c => c.Id, mockCustomer.Id)
+                .With(c => c.Id, customerId)
                 .Without(c => c.FirstName)
                 .Create();
 
@@ -113,39 +134,36 @@ namespace MediatrExample.Tests
             var result = await mockHandler.Handle(updatedCustomer, CancellationToken.None);
 
             // Assert
-            mockCustomer = await _petShopContext.Customers.FindAsync(mockCustomer.Id);
+            var customer = await new GetCustomerByIdQueryHandler(_petShopContext)
+                .Handle(new GetCustomerByIdQuery{ Id = customerId }, CancellationToken.None);
 
-            Assert.Equal(mockCustomer.Id, result.Id);
-            Assert.Equal(mockCustomer.FirstName, result.FirstName);
-            Assert.Equal(mockCustomer.LastName, result.LastName);
-            Assert.Equal(mockCustomer.Address, result.Address);
-            Assert.Equal(mockCustomer.Email, result.Email);
-            Assert.Equal(mockCustomer.Phone, result.Phone);
+            Assert.Equal(customer.Id, result.Id);
+            Assert.Equal(customer.FirstName, result.FirstName);
+            Assert.Equal(customer.LastName, result.LastName);
+            Assert.Equal(customer.Address, result.Address);
+            Assert.Equal(customer.Email, result.Email);
+            Assert.Equal(customer.Phone, result.Phone);
         }
 
         [Fact]
         public async void DeleteCustomerCommand_DeletesCustomer()
         {
             // Arrange
-            var mockCustomer = _fixture.Build<Customer>()
-                .Without(p => p.DeletedDateUtc)
-                .Create();
-
-            await _petShopContext.Customers.AddAsync(mockCustomer, CancellationToken.None);
-            await _petShopContext.SaveChangesAsync(CancellationToken.None);
+            var createCustomer = _fixture.Build<CreateCustomerCommand>().Create();
+            var customerId =
+                await new CreateCustomerCommandHandler(_petShopContext).Handle(createCustomer, CancellationToken.None);
 
             // Act
             var mockHandler = new DeleteCustomerCommandHandler(_petShopContext);
             var result = await mockHandler.Handle(
-                new DeleteCustomerCommand {Id = mockCustomer.Id}, CancellationToken.None);
+                new DeleteCustomerCommand {Id = customerId}, CancellationToken.None);
 
             // Assert
-            var customersCount = _petShopContext.Customers.Count(c => c.DeletedDateUtc == null);
-            var deletedCustomer = await _petShopContext.Customers.FindAsync(mockCustomer.Id);
+            var customers = await new ListCustomersQueryHandler(_petShopContext)
+                .Handle(new ListCustomersQuery(), CancellationToken.None);
 
             Assert.True(result);
-            Assert.Equal(0, customersCount);
-            Assert.NotNull(deletedCustomer.DeletedDateUtc);
+            Assert.Empty(customers);
         }
     }
 }

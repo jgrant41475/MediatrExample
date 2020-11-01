@@ -4,9 +4,10 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Services.Models;
-using Services.ProductOrders.Commands.CreateProductOrder;
+using Services.ProductOrders.Commands.CreateProductOrderQuery;
+using Services.ProductOrders.Commands.DeleteProductOrderCommand;
 using Services.ProductOrders.Queries.GetProductOrderByIdQuery;
-using Services.ProductOrders.Queries.ListProductOrders;
+using Services.ProductOrders.Queries.ListProductOrdersQuery;
 
 namespace WebApi.Controllers
 {
@@ -37,5 +38,10 @@ namespace WebApi.Controllers
         [Route("create")]
         public async Task<Guid> CreateProductOrder(CreateProductOrderCommand request) =>
             await _mediator.Send(request);
+
+        [HttpDelete]
+        [Route("{productOrderId}/delete")]
+        public async Task<bool> DeleteProductOrder([FromRoute] Guid productOrderId) =>
+            await _mediator.Send(new DeleteProductOrderCommand {Id = productOrderId});
     }
 }

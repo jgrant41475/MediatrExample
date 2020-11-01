@@ -6,7 +6,7 @@ using Services.Data;
 using Services.Models;
 using Services.Validators;
 
-namespace Services.ProductOrders.Commands.CreateProductOrder
+namespace Services.ProductOrders.Commands.CreateProductOrderQuery
 {
     public class CreateProductsOrderCommandHandler : IRequestHandler<CreateProductOrderCommand, Guid>
     {

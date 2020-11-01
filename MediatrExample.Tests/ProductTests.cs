@@ -4,10 +4,10 @@ using System.Threading;
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
 using Services.Data;
-using Services.Models;
 using Services.Products.Commands.CreateProductCommand;
 using Services.Products.Commands.DeleteProductCommand;
 using Services.Products.Commands.UpdateProductInfoCommand;
+using Services.Products.Queries.GetProductByIdQuery;
 using Services.Products.Queries.ListAllProductsQuery;
 using Xunit;
 
@@ -35,12 +35,14 @@ namespace MediatrExample.Tests
             const int numberOfProductsToCreate = 5;
 
             // Arrange
-            var listOfProducts = _fixture.Build<Product>()
-                .Without(p => p.DeletedDateUtc)
-                .CreateMany(numberOfProductsToCreate);
+            var createProducts =
+                _fixture.Build<CreateProductCommand>().CreateMany(numberOfProductsToCreate);
 
-            await _petShopContext.Products.AddRangeAsync(listOfProducts);
-            await _petShopContext.SaveChangesAsync();
+            var createProductCommandHandler = new CreateProductCommandHandler(_petShopContext);
+            foreach (var product in createProducts)
+            {
+                await createProductCommandHandler.Handle(product, CancellationToken.None);
+            }
 
             // Act
             var mockHandler = new ListAllProductsQueryHandler(_petShopContext);
@@ -79,11 +81,13 @@ namespace MediatrExample.Tests
 
             // Act
             var mockHandler = new CreateProductCommandHandler(_petShopContext);
-
             var newProductId = await mockHandler.Handle(mockProduct, CancellationToken.None);
 
             // Assert
-            Assert.Equal(0, _petShopContext.Products.Count());
+            var products = await new ListAllProductsQueryHandler(_petShopContext)
+                .Handle(new ListAllProductsQuery(), CancellationToken.None);
+            
+            Assert.Empty(products);
             Assert.Equal(Guid.Empty, newProductId);
         }
 
@@ -100,7 +104,10 @@ namespace MediatrExample.Tests
             var newProductId = await mockHandler.Handle(mockProduct, CancellationToken.None);
 
             // Assert
-            Assert.Equal(0, _petShopContext.Products.Count());
+            var products = await new ListAllProductsQueryHandler(_petShopContext)
+                .Handle(new ListAllProductsQuery(), CancellationToken.None);
+
+            Assert.Empty(products);
             Assert.Equal(Guid.Empty, newProductId);
         }
 
@@ -108,47 +115,46 @@ namespace MediatrExample.Tests
         public async void UpdateProductInfoCommand_UpdatesProduct()
         {
             // Arrange
-            var mockProduct = _fixture.Build<Product>().Create();
-            await _petShopContext.Products.AddAsync(mockProduct, CancellationToken.None);
+            var createProduct = _fixture.Build<CreateProductCommand>().Create();
+            var productId =
+                await new CreateProductCommandHandler(_petShopContext).Handle(createProduct, CancellationToken.None);
 
             // Act
             var updatedProduct = _fixture.Build<UpdateProductInfoCommand>()
-                .With(p => p.Id, mockProduct.Id)
+                .With(p => p.Id, productId)
                 .Without(p => p.Name)
                 .Create();
-            
+
             var mockHandler = new UpdateProductInfoCommandHandler(_petShopContext);
             var result = await mockHandler.Handle(updatedProduct, CancellationToken.None);
 
             // Assert
-            mockProduct = await _petShopContext.Products.FindAsync(mockProduct.Id);
-            
-            Assert.Equal(mockProduct.Id, result.Id);
-            Assert.Equal(mockProduct.Name, result.Name);
-            Assert.Equal(mockProduct.Description, result.Description);
-            Assert.Equal(mockProduct.Price, result.Price);
-            Assert.Equal(mockProduct.IsAnimal, result.IsAnimal);
+            var product = await new GetProductByIdQueryHandler(_petShopContext)
+                .Handle(new GetProductByIdQuery(productId), CancellationToken.None);
+
+            Assert.Equal(product.Id, result.Id);
+            Assert.Equal(product.Name, result.Name);
+            Assert.Equal(product.Description, result.Description);
+            Assert.Equal(product.Price, result.Price);
+            Assert.Equal(product.IsAnimal, result.IsAnimal);
         }
-        
+
         [Fact]
         public async void DeleteProductCommand_DeletesProduct()
         {
             // Arrange
-            var mockProduct = _fixture.Build<Product>()
-                .Without(p => p.DeletedDateUtc)
-                .Create();
-
-            await _petShopContext.Products.AddAsync(mockProduct, CancellationToken.None);
-            await _petShopContext.SaveChangesAsync(CancellationToken.None);
+            var createProduct = _fixture.Build<CreateProductCommand>().Create();
+            var productId =
+                await new CreateProductCommandHandler(_petShopContext).Handle(createProduct, CancellationToken.None);
 
             // Act
             var mockHandler = new DeleteProductCommandHandler(_petShopContext);
             var result = await mockHandler.Handle(
-                new DeleteProductCommand{Id = mockProduct.Id}, CancellationToken.None);
+                new DeleteProductCommand{Id = productId}, CancellationToken.None);
 
             // Assert
             var productsCount = _petShopContext.Products.Count(c => c.DeletedDateUtc == null);
-            var deletedProduct = await _petShopContext.Products.FindAsync(mockProduct.Id);
+            var deletedProduct = await _petShopContext.Products.FindAsync(productId);
 
             Assert.True(result);
             Assert.Equal(0, productsCount);

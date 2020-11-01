@@ -11,5 +11,11 @@ namespace Services.Models
         public Guid CustomerId { get; set; }
 
         public virtual Customer Customer { get; set; }
+
+#nullable enable
+
+        public DateTime? DeletedDateUtc { get; set; }
+
+#nullable disable
     }
 }

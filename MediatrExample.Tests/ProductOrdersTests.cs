@@ -3,11 +3,13 @@ using System.Linq;
 using System.Threading;
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
+using Services.Customers.Commands.CreateCustomerCommand;
 using Services.Data;
-using Services.Models;
-using Services.ProductOrders.Commands.CreateProductOrder;
+using Services.ProductOrders.Commands.CreateProductOrderQuery;
+using Services.ProductOrders.Commands.DeleteProductOrderCommand;
 using Services.ProductOrders.Queries.GetProductOrderByIdQuery;
-using Services.ProductOrders.Queries.ListProductOrders;
+using Services.ProductOrders.Queries.ListProductOrdersQuery;
+using Services.Products.Commands.CreateProductCommand;
 using Xunit;
 
 namespace MediatrExample.Tests
@@ -20,7 +22,7 @@ namespace MediatrExample.Tests
         public ProductOrdersTests()
         {
             _fixture = new Fixture();
-            
+
             var options = new DbContextOptionsBuilder<PetShopContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
@@ -34,15 +36,28 @@ namespace MediatrExample.Tests
             const int numberOfProductOrdersToCreate = 5;
 
             // Arrange
-            var mockProductOrders = 
-                _fixture.Build<ProductOrder>().CreateMany(numberOfProductOrdersToCreate);
+            var createCustomer = _fixture.Build<CreateCustomerCommand>().Create();
+            var customerId =
+                await new CreateCustomerCommandHandler(_petShopContext).Handle(createCustomer, CancellationToken.None);
 
-            await _petShopContext.ProductOrders.AddRangeAsync(mockProductOrders, CancellationToken.None);
-            await _petShopContext.SaveChangesAsync(CancellationToken.None);
+            var createProduct = _fixture.Build<CreateProductCommand>().Create();
+            var productId =
+                await new CreateProductCommandHandler(_petShopContext).Handle(createProduct, CancellationToken.None);
+
+            var mockProductOrders = _fixture.Build<CreateProductOrderCommand>()
+                .With(p => p.CustomerId, customerId)
+                .With(p => p.ProductId, productId)
+                .CreateMany(numberOfProductOrdersToCreate);
+
+            var createProductOrderCommandHandler = new CreateProductsOrderCommandHandler(_petShopContext);
+            foreach (var productOrder in mockProductOrders)
+            {
+                await createProductOrderCommandHandler.Handle(productOrder, CancellationToken.None);
+            }
 
             // Act
             var mockHandler = new ListProductOrdersQueryHandler(_petShopContext);
-            var handlerResult = 
+            var handlerResult =
                 await mockHandler.Handle(new ListProductOrdersQuery(), CancellationToken.None);
 
             // Assert
@@ -53,34 +68,45 @@ namespace MediatrExample.Tests
         public async void GetProductOrderByIdQuery_GetsProductOrder()
         {
             // Arrange
-            var mockProductOrder = 
-                _fixture.Build<ProductOrder>().Create();
+            var createCustomer = _fixture.Build<CreateCustomerCommand>().Create();
+            var customerId =
+                await new CreateCustomerCommandHandler(_petShopContext).Handle(createCustomer, CancellationToken.None);
 
-            await _petShopContext.ProductOrders.AddAsync(mockProductOrder, CancellationToken.None);
-            await _petShopContext.SaveChangesAsync(CancellationToken.None);
+            var createProduct = _fixture.Build<CreateProductCommand>().Create();
+            var productId =
+                await new CreateProductCommandHandler(_petShopContext).Handle(createProduct, CancellationToken.None);
+
+            var mockProductOrder = _fixture.Build<CreateProductOrderCommand>()
+                .With(p => p.CustomerId, customerId)
+                .With(p => p.ProductId, productId)
+                .Create();
+            var productOrderId = await new CreateProductsOrderCommandHandler(_petShopContext)
+                .Handle(mockProductOrder, CancellationToken.None);
 
             // Act
             var mockHandler = new GetProductOrderByIdQueryHandler(_petShopContext);
             var handlerResult =
-                await mockHandler.Handle(new GetProductOrderByIdQuery(mockProductOrder.Id), CancellationToken.None);
+                await mockHandler.Handle(new GetProductOrderByIdQuery(productOrderId), CancellationToken.None);
 
             // Assert
-            Assert.Equal(mockProductOrder.Id, handlerResult.Id);
+            Assert.Equal(productOrderId, handlerResult.Id);
         }
 
         [Fact]
         public async void CreateProductOrderCommand_CreatesProductOrder()
         {
             // Arrange
-            var mockCustomer = _fixture.Build<Customer>().Create();
-            await _petShopContext.Customers.AddAsync(mockCustomer, CancellationToken.None);
+            var createCustomer = _fixture.Build<CreateCustomerCommand>().Create();
+            var customerId =
+                await new CreateCustomerCommandHandler(_petShopContext).Handle(createCustomer, CancellationToken.None);
 
-            var mockProduct = _fixture.Build<Product>().Create();
-            await _petShopContext.Products.AddAsync(mockProduct);
-            
+            var createProduct = _fixture.Build<CreateProductCommand>().Create();
+            var productId =
+                await new CreateProductCommandHandler(_petShopContext).Handle(createProduct, CancellationToken.None);
+
             var mockProductOrder = _fixture.Build<CreateProductOrderCommand>()
-                .With(p => p.CustomerId, mockCustomer.Id)
-                .With(p => p.ProductId, mockProduct.Id)
+                .With(p => p.CustomerId, customerId)
+                .With(p => p.ProductId, productId)
                 .Create();
 
             // Act
@@ -96,11 +122,12 @@ namespace MediatrExample.Tests
         public async void CreateProductOrderCommand_InvalidProductId_DoesNotCreateProductOrder()
         {
             // Arrange
-            var mockCustomer = _fixture.Build<Customer>().Create();
-            await _petShopContext.Customers.AddAsync(mockCustomer, CancellationToken.None);
+            var createCustomer = _fixture.Build<CreateCustomerCommand>().Create();
+            var customerId =
+                await new CreateCustomerCommandHandler(_petShopContext).Handle(createCustomer, CancellationToken.None);
 
             var mockProductOrder = _fixture.Build<CreateProductOrderCommand>()
-                .With(p => p.CustomerId, mockCustomer.Id)
+                .With(p => p.CustomerId, customerId)
                 .With(p => p.ProductId, Guid.NewGuid())
                 .Create();
 
@@ -112,17 +139,19 @@ namespace MediatrExample.Tests
             Assert.Equal(0, _petShopContext.ProductOrders.Count());
             Assert.Equal(Guid.Empty, newProductOrderId);
         }
-        
+
         [Fact]
         public async void CreateProductOrderCommand_InvalidCustomerId_DoesNotCreateProductOrder()
         {
             // Arrange
-            var mockProduct = _fixture.Build<Product>().Create();
-            await _petShopContext.Products.AddAsync(mockProduct);
+            var createProduct = _fixture.Build<CreateProductCommand>().Create();
+            var productId =
+                await new CreateProductCommandHandler(_petShopContext).Handle(createProduct, CancellationToken.None);
+
 
             var mockProductOrder = _fixture.Build<CreateProductOrderCommand>()
                 .With(p => p.CustomerId, Guid.NewGuid())
-                .With(p => p.ProductId, mockProduct.Id)
+                .With(p => p.ProductId, productId)
                 .Create();
 
             // Act
@@ -133,20 +162,22 @@ namespace MediatrExample.Tests
             Assert.Equal(0, _petShopContext.ProductOrders.Count());
             Assert.Equal(Guid.Empty, newProductOrderId);
         }
-        
+
         [Fact]
         public async void CreateProductOrderCommand_NegativeQuantity_DoesNotCreateProductOrder()
         {
             // Arrange
-            var mockCustomer = _fixture.Build<Customer>().Create();
-            await _petShopContext.Customers.AddAsync(mockCustomer, CancellationToken.None);
+            var createCustomer = _fixture.Build<CreateCustomerCommand>().Create();
+            var customerId =
+                await new CreateCustomerCommandHandler(_petShopContext).Handle(createCustomer, CancellationToken.None);
 
-            var mockProduct = _fixture.Build<Product>().Create();
-            await _petShopContext.Products.AddAsync(mockProduct);
+            var createProduct = _fixture.Build<CreateProductCommand>().Create();
+            var productId =
+                await new CreateProductCommandHandler(_petShopContext).Handle(createProduct, CancellationToken.None);
 
             var mockProductOrder = _fixture.Build<CreateProductOrderCommand>()
-                .With(p => p.CustomerId, mockCustomer.Id)
-                .With(p => p.ProductId, mockProduct.Id)
+                .With(p => p.CustomerId, customerId)
+                .With(p => p.ProductId, productId)
                 .With(p => p.Quantity, -1)
                 .Create();
 
@@ -157,6 +188,41 @@ namespace MediatrExample.Tests
             // Assert
             Assert.Equal(0, _petShopContext.ProductOrders.Count());
             Assert.Equal(Guid.Empty, newProductOrderId);
+        }
+
+        [Fact]
+        public async void DeleteProductOrderCommand_DeletesProductOrder()
+        {
+            // Arrange
+
+            var createCustomer = _fixture.Build<CreateCustomerCommand>().Create();
+            var customerId =
+                await new CreateCustomerCommandHandler(_petShopContext).Handle(createCustomer, CancellationToken.None);
+
+            var createProduct = _fixture.Build<CreateProductCommand>().Create();
+            var productId =
+                await new CreateProductCommandHandler(_petShopContext).Handle(createProduct, CancellationToken.None);
+
+            var createProductOrderHandler = new CreateProductsOrderCommandHandler(_petShopContext);
+            var newProductOrderId = await createProductOrderHandler.Handle(new CreateProductOrderCommand
+            {
+                Quantity = 3,
+                CustomerId = customerId,
+                ProductId = productId
+            }, CancellationToken.None);
+
+            // Act
+            var mockHandler = new DeleteProductOrderCommandHandler(_petShopContext);
+            var result = await mockHandler.Handle(
+                new DeleteProductOrderCommand {Id = newProductOrderId}, CancellationToken.None);
+
+            // Assert
+            var listOfProductOrders =
+                await new ListProductOrdersQueryHandler(_petShopContext).Handle(new ListProductOrdersQuery(),
+                    CancellationToken.None);
+
+            Assert.True(result);
+            Assert.Empty(listOfProductOrders);
         }
     }
 }

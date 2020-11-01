@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Services.Customers.Commands.CreateCustomerCommand;
 using Services.Customers.Commands.DeleteCustomerCommand;
 using Services.Customers.Commands.UpdateCustomerInfoCommand;
+using Services.Customers.Queries.GetCustomerByIdQuery;
 using Services.Customers.Queries.ListCustomersQuery;
 using Services.Models;
 
@@ -28,6 +29,11 @@ namespace WebApi.Controllers
         [HttpGet]
         public async Task<IEnumerable<Customer>> ListCustomers() =>
             await _mediator.Send(new ListCustomersQuery());
+
+        [Route("{customerId}")]
+        [HttpGet]
+        public async Task<Customer> GetCustomerById([FromRoute] Guid customerId) =>
+            await _mediator.Send(new GetCustomerByIdQuery {Id = customerId});
 
         [Route("create")]
         [HttpPost]
