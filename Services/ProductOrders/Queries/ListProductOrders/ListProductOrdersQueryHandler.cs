@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Services.Data;
 using Services.Models;
 
@@ -18,7 +19,9 @@ namespace Services.ProductOrders.Queries.ListProductOrders
         
         public async Task<IEnumerable<ProductOrder>> Handle(ListProductOrdersQuery request, CancellationToken cancellationToken)
         {
-            var allProductOrders = _context.ProductOrders;
+            var allProductOrders = _context.ProductOrders
+                .Include(p => p.Order.Customer)
+                .Include(p => p.Product);
 
             return await Task.FromResult(allProductOrders);
         }

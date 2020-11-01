@@ -2,20 +2,17 @@
     <thead>
         <tr>
             <th>Name</th>
-            <th>Description</th>
-            <th>Price</th>
+            <th>Address</th>
             <th>Edit</th>
             <th>Delete</th>
         </tr>
     </thead>
     <tbody>
-        <tr *ngFor="let product of products$ | async">
-            <td>{{ product.name }}</td>
-            <td>{{product.description}}</td>
-            <td>{{product.price}}</td>
+        <tr *ngFor="let customer of customers$ | async">
+            <td>{{customer.firstName}} {{customer.lastName}}</td>
+            <td>{{customer.address}}</td>
             <td><button class="btn btn-primary">Edit</button></td>
             <td><button class="btn btn-secondary">Delete</button></td>
         </tr>
     </tbody>
 </table>
-

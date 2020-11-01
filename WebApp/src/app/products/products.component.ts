@@ -1,27 +1,27 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
+import {HttpClient} from "@angular/common/http";
+import {Observable} from "rxjs";
 
-import * as $ from 'jquery';
+export interface Product {
+    id: string,
+    name: string,
+    description: string,
+    price: number,
+    isAnimal: boolean,
+};
 
 @Component({
-  selector: 'app-products',
-  templateUrl: './products.component.html',
-  styleUrls: ['./products.component.scss']
+    selector: 'app-products',
+    templateUrl: './products.component.html',
+    styleUrls: ['./products.component.scss']
 })
 export class ProductsComponent implements OnInit {
+    products$: Observable<Product[]>;
 
-  constructor() { }
+    constructor(private http: HttpClient) {
+    }
 
-  ngOnInit(): void {
-      console.log("test")
-      $(document).ready(function (){
-          console.log("Loading...");
-          $.get("https://localhost:5001/customers").done(function(res){
-              console.log("Loaded.");
-              console.log(res);
-          }).fail(function(){
-              console.error("GET failed");
-          });
-      });
-  }
-
+    ngOnInit(): void {
+        this.products$ = this.http.get<Product[]>("https://localhost:5001/products");
+    }
 }
