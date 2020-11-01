@@ -21,6 +21,7 @@
     "@angular/router": "~10.1.6",
     "@types/jquery": "^3.5.4",
     "bootstrap": "^4.5.3",
+    "datatables": "^1.10.18",
     "jquery": "^3.5.1",
     "ngx-bootstrap": "^6.1.0",
     "popper.js": "^1.16.1",

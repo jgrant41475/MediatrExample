@@ -4,6 +4,7 @@ using System.Threading;
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
 using Services.Customers.Commands.CreateCustomerCommand;
+using Services.Customers.Commands.UpdateCustomerInfoCommand;
 using Services.Customers.Queries.ListCustomersQuery;
 using Services.Data;
 using Services.Models;
@@ -90,6 +91,34 @@ namespace MediatrExample.Tests
             Assert.Equal(0, numberOfCustomers);
             Assert.Equal(Guid.Empty, newCustomerId1);
             Assert.Equal(Guid.Empty, newCustomerId2);
+        }
+
+        [Fact]
+        public async void UpdateCustomerInfoCommand_UpdatesCustomerInfo()
+        {
+            // Arrange
+            var mockCustomer = _fixture.Build<Customer>().Create();
+            await _petShopContext.Customers.AddAsync(mockCustomer, CancellationToken.None);
+
+            // Act
+            var updatedCustomer = _fixture.Build<UpdateCustomerInfoCommand>()
+                .With(c => c.Id, mockCustomer.Id)
+                .Without(c => c.FirstName)
+                .Create();
+            
+            var mockHandler = new UpdateCustomerInfoCommandHandler(_petShopContext);
+            var result = await mockHandler.Handle(updatedCustomer, CancellationToken.None);
+
+            // Assert
+            mockCustomer = await _petShopContext.Customers.FindAsync(mockCustomer.Id);
+            
+            Assert.Equal(mockCustomer.Id, result.Id);
+            Assert.Equal(mockCustomer.FirstName, result.FirstName);
+            Assert.Equal(mockCustomer.LastName, result.LastName);
+            Assert.Equal(mockCustomer.Address, result.Address);
+            Assert.Equal(mockCustomer.Email, result.Email);
+            Assert.Equal(mockCustomer.Phone, result.Phone);
+
         }
     }
 }

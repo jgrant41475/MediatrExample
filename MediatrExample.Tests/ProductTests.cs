@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Services.Data;
 using Services.Models;
 using Services.Products.Commands.CreateProductCommand;
+using Services.Products.Commands.UpdateProductInfoCommand;
 using Services.Products.Queries.ListAllProductsQuery;
 using Xunit;
 
@@ -98,6 +99,32 @@ namespace MediatrExample.Tests
             // Assert
             Assert.Equal(0, _petShopContext.Products.Count());
             Assert.Equal(Guid.Empty, newProductId);
+        }
+
+        [Fact]
+        public async void UpdateProductInfoCommand_UpdatesProduct()
+        {
+            // Arrange
+            var mockProduct = _fixture.Build<Product>().Create();
+            await _petShopContext.Products.AddAsync(mockProduct, CancellationToken.None);
+
+            // Act
+            var updatedProduct = _fixture.Build<UpdateProductInfoCommand>()
+                .With(p => p.Id, mockProduct.Id)
+                .Without(p => p.Name)
+                .Create();
+            
+            var mockHandler = new UpdateProductInfoCommandHandler(_petShopContext);
+            var result = await mockHandler.Handle(updatedProduct, CancellationToken.None);
+
+            // Assert
+            mockProduct = await _petShopContext.Products.FindAsync(mockProduct.Id);
+            
+            Assert.Equal(mockProduct.Id, result.Id);
+            Assert.Equal(mockProduct.Name, result.Name);
+            Assert.Equal(mockProduct.Description, result.Description);
+            Assert.Equal(mockProduct.Price, result.Price);
+            Assert.Equal(mockProduct.IsAnimal, result.IsAnimal);
         }
     }
 }
